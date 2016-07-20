@@ -1,0 +1,799 @@
+<!DOCTYPE HTML PUBLIC >
+<html>
+<head>
+
+<title>Intermodal Hub Layout</title>
+<meta http-equiv="content-type" content="text/html; charset="ISO-8859-1">
+<meta http-equiv="content-script-type" content="text/javascript">
+<meta http-equiv="content-style-type" content="text/css">
+
+<style type="text/css">
+.dragclass{
+position : relative;
+cursor : move;
+}
+.custom-menu {
+    position: relative;
+    background-color:#C0C0C0;
+    border: 1px solid black;
+    padding: 2px;
+}
+</style>
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="/js/jquery-2.0.2.js"></script>
+<script type="text/javascript" src="/js/jquery.contextMenu.js"></script>
+<script type="text/javascript" src="/js/jquery.ui.position.js"></script>
+<script type="text/javascript" src="/js/d3.v3.js"></script>
+<script type="text/javascript" src="/js/bootstrap.js"></script>
+
+<link type="text/css" rel="stylesheet" href="/css/jquery.contextMenu.css" />
+<link type="text/css" rel="stylesheet" href="/css/bootstrap.css" />
+<link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.css" />
+</head>
+<body>
+
+<table width="100%" height="100%" border="1">
+<tr height = "25">
+<td align="right">
+<div class="btn-group">
+<button id="enblbtn" height="20" onclick = 'RuntimeUpdate()' class="btn">Disable</button>
+
+<button height="20" onclick = 'DrawPath()' class="btn">Show Path</button>
+
+<button height="20" onclick = 'Clear()' class="btn" >Clear</button>
+
+<button height="20" onclick = 'Update()' class="btn" >Update</button>
+</div>
+</td>
+<td align="center">
+<div class="btn-group"> <button height="20" onclick = 'clearNotifi()' class="btn" >Clear Notifications</button></div>
+</td>
+</tr>
+<tr>
+<td id="canvas" width="80%" height="630" border="1" style="background-image:url(/backgroundmap.png);background-repeat:no-repeat;background-size:100% 100%;opacity:0.8;">
+</td>
+<td width="20%" height="630" id="notifiCell">
+<div id="notifiDiv" style="overflow:scroll; width:100% ;height:100%">
+</div>
+</td>
+</tr>
+</table>
+<div id="1" class="dragclass" style="position:absolute;height:20px;width:100px;background-color:#dda533;color:#ffffff;">
+TRLU919396
+</div>
+
+<div id="2" class="dragclass" style="position:absolute;height:20px;width:100px;background-color:#dda533;color:#ffffff;">
+JBHU223493
+</div>
+
+<div id="3" class="dragclass" style="position:absolute;height:20px;width:100px;background-color:#dda533;color:#ffffff;">
+UPHU773392
+</div>
+
+<div id="4" class="dragclass" style="position:absolute;height:20px;width:100px;background-color:#dda533;color:#ffffff;">
+JBHU546781
+</div>
+
+<div id="5" class="dragclass" style="position:absolute;height:20px;width:100px;left:310px;top:543;background-color:#dda533;color:#ffffff;">
+JBHU546782
+</div>
+
+<div id="6" class="dragclass" style="position:absolute;height:20px;width:100px;left:310px;top:643;background-color:#dda533;color:#ffffff;">
+JBHU546783
+</div>
+
+<div id="7" class="dragclass" style="position:absolute;height:20px;width:100px;left:650px;top:143;background-color:#dda533;color:#ffffff;">
+JBHU546784
+</div>
+
+<div id="8" class="dragclass" style="position:absolute;height:20px;width:100px;left:650px;top:243;background-color:#dda533;color:#ffffff;">
+JBHU546785
+</div>
+
+<div id="9" class="dragclass" style="position:absolute;height:20px;width:100px;left:650px;top:343;background-color:#dda533;color:#ffffff;">
+JBHU546786
+</div>
+
+<div id="10" class="dragclass" style="position:absolute;height:20px;width:100px;left:650px;top:443;background-color:#dda533;color:#ffffff;">
+JBHU546787
+</div>
+
+<div id="11" class="dragclass" style="position:absolute;height:20px;width:100px;left:650px;top:543;background-color:#dda533;color:#ffffff;">
+JBHU546788
+</div>
+
+<div id="12" class="dragclass" style="position:absolute;height:20px;width:100px;left:650px;top:643;background-color:#dda533;color:#ffffff;">
+JBHU546789
+</div>
+
+
+<script>
+  
+  jQuery(document).ready(function(){
+   $(document).dblclick(function(e){
+      alert(e.pageX +', '+ e.pageY);
+   }); 
+})
+  
+var lineFunction = d3.svg.line()
+                         .x(function(d) { return d.x; })
+                         .y(function(d) { return d.y-33; })
+                         .interpolate("linear");
+
+//The SVG Container
+var svgContainer = d3.select("#canvas").append("svg:svg")
+							.attr("width",1093)
+							.attr("height",630);
+
+/*var lineGraph = svgContainer.append("path")
+                            .attr("d", lineFunction(lineData))
+                            .attr("stroke", "blue")
+                            .attr("stroke-width", 2)
+                            .attr("fill", "none");
+							var a =0;
+	var rectangle = svgContainer.append("rect")
+                            .attr("x", 10)
+                            .attr("y", 10)
+                            .attr("width", 50)
+                            .attr("height", 100)
+							.attr("fill",function(){if (a==0) return "#0000ff"; else return "blue";});*/
+  
+  var n=500;
+  var m=5;
+  var enblRun=true;
+  
+  var data_first = [];
+  var data_second = [];
+  var data_third = [];
+  var data_fourth = [];
+  var update = new Array(0,0,0,0,0);
+  
+//  var newCell = document.getElementById("notifiCell");
+  //var socket = io.connect('http://10.87.150.65');
+  
+  
+  
+  var host = location.hostname;
+  console.log('Host : ');
+  console.log(host);
+  
+  console.log('before socket');
+  var socket = io(host+':3030');
+  console.log('after socket');
+  socket.emit('my other event', {id:'bullshit'});
+  socket.on('jinga',function(data){socket.emit('jinga',{lala:'hu'});});
+
+  socket.on("change",function(data){
+		socket.emit("start",{n:"haha"});
+		socket.on("first",function(data){
+		console.log(data);
+		var d= document.getElementById("1");
+		d.style.left=data.left;
+		d.style.top=data.top;
+		data_first.push({x:parseInt(data.left),y:parseInt(data.top)});
+		if(data.status=="lock") {
+			d.style.backgroundColor="#0000ff";
+			d.style.zIndex=n++;
+			}
+		});
+		socket.on("second",function(data){
+		var d= document.getElementById("2");
+		d.style.left=data.left;
+		d.style.top=data.top;
+		data_second.push({x:parseInt(data.left),y:parseInt(data.top)});
+		if(data.status=="lock") {
+			d.style.backgroundColor="#0000ff";
+			d.style.zIndex=n++;
+			}
+		});
+		socket.on("third",function(data){
+		var d= document.getElementById("3");
+		d.style.left=data.left;
+		d.style.top=data.top;
+		data_third.push({x:parseInt(data.left),y:parseInt(data.top)});
+		if(data.status=="lock") {
+			d.style.backgroundColor="#0000ff";
+			d.style.zIndex=n++;
+			}
+		});
+		socket.on("fourth",function(data){
+		var d= document.getElementById("4");
+		d.style.left=data.left;
+		d.style.top=data.top;
+		data_fourth.push({x:parseInt(data.left),y:parseInt(data.top)});
+		if(data.status=="lock") {
+			d.style.backgroundColor="#0000ff";
+			d.style.zIndex=n++;
+			}
+		});
+	});
+
+  socket.on('new',function(data)
+		{
+			var d=document.getElementById(parseInt(data.id));
+			d.style.backgroundColor="#0000ff";
+			if(enblRun==true){
+			d.style.zIndex=n++;
+			d.style.left=data.left;
+			d.style.top=data.top;
+			}
+			var l = parseInt(data.id);
+			if(l=="1"){
+				data_first.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}
+			else if(l=="2"){
+				data_second.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}
+			else if(l=="3"){
+				data_third.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}
+			else if(l=="4"){
+				data_fourth.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}
+			/*var newCell=document.getElementById("notifiDiv");
+			var newdiv=document.createElement('div');
+			newdiv.id="notif" + m;
+			newdiv.innerHTML="The object " + data.id +" was moved to " + data.left + " , " + data.top + ".";
+			newdiv.setAttribute("style","background-color:#D4D4D4;cursor:pointer;font-size:9pt;");
+			newdiv.setAttribute("align","bottom");
+			newCell.insertBefore(newdiv,newCell.childNodes[0]);
+			var j = document.getElementById("notif" + m);
+			j.onmouseover=function(){
+				j.style.backgroundColor = "#C0C0C0";
+				var rectangle = svgContainer.append("rect")
+                            .attr("x", parseInt(data.left)-3)
+                            .attr("y", parseInt(data.top)-36)
+                            .attr("width", 6)
+                            .attr("height", 6)
+							.attr("id","rect"+m)
+							.attr("fill",function(){
+				if(data.id=="1") return "#C0C0C0";
+				else if(data.id=="2") return "#15FF00";
+				else if(data.id=="3") return "#FF02F3";
+				else if(data.id=="4") return "#00EBFF";});
+				};
+			j.onmouseout=function(){
+				j.style.backgroundColor = "#D4D4D4";
+				var rectangle = svgContainer.selectAll("rect")
+							.attr("id","rect"+m);
+				rectangle.remove();
+			};
+			m++;*/
+		});
+		
+	socket.on("mouseup",function(data){
+				var d = document.getElementById(parseInt(data.unlock));
+         		d.style.backgroundColor="#ff0000";
+				/*if(d.id=="1"){
+					data_first.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}
+				else if(d.id=="2"){
+					data_second.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}
+				else if(d.id=="3"){
+					data_third.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}
+				else{
+					data_fourth.push({x:parseInt(data.left),y:parseInt(data.top)});
+				}*/
+				if (enblRun==false)
+				{
+					update[parseInt(d.id)]=1;
+				}
+				var newCell=document.getElementById("notifiDiv");
+				var newdiv=document.createElement('div');
+				newdiv.id="notif" + m;
+				newdiv.innerHTML="The object " + data.unlock +" was moved to " + data.left + " , " + data.top + ".";
+				newdiv.setAttribute("style","background-color:#ADFFFF;cursor:pointer;font-size:11pt;");
+				newdiv.setAttribute("align","bottom");
+				newCell.insertBefore(newdiv,newCell.childNodes[0]);
+				var j = document.getElementById("notif" + m);
+				j.onmouseover=function(){
+					j.style.backgroundColor = "#00EBFF";
+					if(d.id=="1")
+					{
+						var lineData = data_first;
+					}
+
+					else if(d.id==2)
+					{
+						var lineData = data_second;
+					}
+
+					else if(d.id==3)
+					{
+						var lineData = data_third;
+					}
+
+					else if(d.id==4)
+					{
+						var lineData = data_fourth;
+					}
+
+					var l = lineData.length;
+					
+					var recta = svgContainer.append("rect")
+                            .attr("x", lineData[0].x-3)
+                            .attr("y", lineData[0].y-36)
+                            .attr("width", 6)
+                            .attr("height", 6)
+							.attr("id","recta"+m)
+							.attr("fill",function(){
+						if(d.id=="1") return "#C0C0C0";
+						else if(d.id=="2") return "#15FF00";
+						else if(d.id=="3") return "#FF02F3";
+						else if(d.id=="4") return "#00EBFF";});
+					
+					var rectb = svgContainer.append("rect")
+                            .attr("x", lineData[l-1].x-3)
+                            .attr("y", lineData[l-1].y-36)
+                            .attr("width", 6)
+                            .attr("height", 6)
+							.attr("id","rectb"+m)
+							.attr("fill",function(){
+						if(d.id=="1") return "#C0C0C0";
+						else if(d.id=="2") return "#15FF00";
+						else if(d.id=="3") return "#FF02F3";
+						else if(d.id=="4") return "#00EBFF";});
+					
+					var k = lineData[0];
+					var p = lineData.pop();
+					lineData.push(p);
+					var lineDat = [k,p];
+					
+					var lineGraph = svgContainer.append("path")
+                            .attr("d", lineFunction(lineDat))
+                            .attr("stroke-width", 2)
+                            .attr("fill", "none")
+							.attr("id","path"+m)
+							.attr("stroke", function(){
+						if(d.id=="1") return "#C0C0C0";
+						else if(d.id=="2") return "#15FF00";
+						else if(d.id=="3") return "#FF02F3";
+						else if(d.id=="4") return "#00EBFF";});
+				};
+				j.onmouseout=function(){
+					j.style.backgroundColor = "#ADFFFF";
+					var recta = svgContainer.selectAll("rect")
+							.attr("id","recta"+m);
+					recta.remove();
+					var rectb = svgContainer.selectAll("rect")
+							.attr("id","rectb"+m);
+					rectb.remove();
+					var lineGraph = svgContainer.selectAll("path")
+							.attr("id","path"+m);
+					lineGraph.remove();
+				};
+				m++;
+			});	
+		
+if  (document.getElementsByClassName('dragclass')){
+
+(function(){
+
+//var n = 500;
+var dragok = false;
+var y,x,d,dy,dx;
+
+function move(e){
+if (!e) e = window.event;
+ if (dragok){
+  d.style.left = Math.min(995,Math.max(2,(dx + e.clientX - x))) + "px";
+  d.style.top  = Math.min(645,Math.max(35,(dy + e.clientY - y))) + "px";
+  /*if(d.id=="1"){
+				data_first.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}
+			else if(d.id=="2"){
+				data_second.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}
+			else if(d.id=="3"){
+				data_third.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}
+			else{
+				data_fourth.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}*/
+//  var xyz={left:d.style.left , top:d.style.top};
+  socket.emit("onmousemove",{left:d.style.left,top:d.style.top,id:d.id});
+  return false;
+ }
+}
+
+function down(e){
+if (!e) e = window.event;
+var temp = (typeof e.target != "undefined")?e.target:e.srcElement;
+if (temp.tagName != "HTML"|"BODY" && temp.className != "dragclass"){
+ temp = (typeof temp.parentNode != "undefined")?temp.parentNode:temp.parentElement;
+ }
+if(e.button==0){
+if (temp.className == "dragclass")
+{
+ dragok = true;
+ temp.style.zIndex = n++;
+ d = temp;
+ dx = parseInt(temp.style.left+0);
+ dy = parseInt(temp.style.top+0);
+ x = e.clientX;
+ y = e.clientY;
+ if(update[parseInt(d.id)]==0){
+	socket.emit("onmousedown",{lock:d.id});
+	socket.on("ok",function(data){
+		if (parseInt(data.lock)==d.id) {  
+			d.style.backgroundColor="#0000ff";
+			document.onmousemove = move;
+			document.onmouseup = up;
+		}
+	});}
+ else
+ {
+	dragok = false;
+	document.onmousemove = null;
+	document.onmouseup = null;
+	if(d.id==1)
+	{
+		var mo = data_first.length;
+		var a = data_first[mo-1].x;
+		var b = data_first[mo-1].y;
+	}
+	else if(d.id==2)
+	{
+		var mo = data_second.length;
+		var a = data_second[mo-1].x;
+		var b = data_second[mo-1].y;
+	}
+	else if(d.id==3)
+	{
+		var mo = data_third.length;
+		var a = data_third[mo-1].x;
+		var b = data_third[mo-1].y;
+	}
+	else if(d.id==4)
+	{
+		var mo = data_fourth.length;
+		var a = data_fourth[mo-1].x;
+		var b = data_fourth[mo-1].y;
+	}
+	alert("The object " + d.id + " was moved to " + a + " , " + b + ". Please Update.");
+ }
+ return false;
+ }
+ }
+
+else{
+if (temp.className == "dragclass")
+{
+	$(".dragclass").bind("contextmenu", function(event) { 
+		event.preventDefault();
+		$.contextMenu({
+		selector:'.dragclass',
+		className:'custom-menu',
+        build: function($trigger, event) {
+            return {
+//                callback: function(key, options) {
+//					var m = event.pageX; alert(m);
+//                    $("#" +parseInt(key)).css("zIndex",n++);
+//                },
+                items: {
+                    "1": {name: "1", callback:function(key,options){
+						var a = event.pageX;
+						var b = parseInt($("#1").css("left"));
+						var c = event.pageY;
+						var d = parseInt($("#1").css("top"));
+						if(a >= b && a < (b+150) && c >=d && c < (d+20))
+						{$("#1").css("zIndex",n++);
+						return true;}
+						else {$.disableContextMenuItems("#1");}
+						}},
+                    "2": {name: "2", callback:function(key,options){
+						var a = event.pageX;
+						var b = parseInt($("#2").css("left"));
+						var c = event.pageY;
+						var d = parseInt($("#2").css("top"));
+						if(a >= b && a < (b+150) && c >=d && c < (d+100))
+						{$("#2").css("zIndex",n++);
+						return true;}
+						else {$.disableContextMenuItems("#2");}
+						}},
+                    "3": {name: "3", callback:function(key,options){
+						var a = event.pageX;
+						var b = parseInt($("#3").css("left"));
+						var c = event.pageY;
+						var d = parseInt($("#3").css("top"));
+						if(a >= b && a < (b+150) && c >=d && c < (d+105))
+						{$("#3").css("zIndex",n++);
+						return true;}
+						else {$.disableContextMenuItems("#3");}
+						}},
+                    "4": {name: "4", callback:function(key,options){
+						var a = event.pageX;
+						var b = parseInt($("#4").css("left"));
+						var c = event.pageY;
+						var d = parseInt($("#4").css("top"));
+						if(a >= b && a < (b+150) && c >=d && c < (d+20))
+						{$("#4").css("zIndex",n++);
+						return true;}
+						else {$.disableContextMenuItems("#4");}
+						}},
+                    "sep1": "---------",
+                    "quit": {name: "Quit",callback:function(key,options){$("#" +parseInt(key)).css("zIndex",n++);}}
+                }
+            };
+        }
+    });
+	
+	});
+	$(document).bind("click", function(event) {$("div.custom-menu").hide();});
+}}
+}
+
+function up(e){
+	if (!e) e = window.event;
+	var temp = (typeof e.target != "undefined")?e.target:e.srcElement;
+	if (temp.tagName != "HTML"|"BODY" && temp.className != "dragclass"){
+	temp = (typeof temp.parentNode != "undefined")?temp.parentNode:temp.parentElement;
+	}
+	dragok = false;
+	document.onmousemove = null;
+	if (temp.className == "dragclass")
+	{
+	var a = parseInt(d.style.left);
+	var b = parseInt(d.style.top);
+	if(d.id=="1"){
+				data_first.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}
+			else if(d.id=="2"){
+				data_second.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}
+			else if(d.id=="3"){
+				data_third.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}
+			else if(d.id=="4"){
+				data_fourth.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+				}
+          d.style.backgroundColor="#ff0000";
+	socket.emit("onmouseup",{unlock:d.id,left:d.style.left,top:d.style.top});
+	}
+}
+
+document.onmousedown = down;
+document.onmouseup = up;
+
+})();
+}
+
+function RuntimeUpdate()
+	{
+		var doc=document.getElementById("enblbtn");
+		if(enblRun==true)
+		{
+			enblRun=false;
+			doc.innerHTML="Enable";
+		}
+		else
+		{
+			enblRun=true;
+			doc.innerHTML="Disable";
+		}
+	}
+
+function DrawPath(event){
+	var lineData = data_first;
+	var l = lineData.length;
+					
+	var recta1 = svgContainer.append("rect")
+                    .attr("x", lineData[0].x-3)
+                    .attr("y", lineData[0].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","recta1")
+					.attr("fill","#D4D4D4");
+					
+	var rectb1 = svgContainer.append("rect")
+                    .attr("x", lineData[l-1].x-3)
+                    .attr("y", lineData[l-1].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","rectb1")
+					.attr("fill","#D4D4D4");
+					
+	var lineGraph1 = svgContainer.append("path")
+                    .attr("d", lineFunction(lineData))
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none")
+					.attr("id","path1")
+					.attr("stroke", "#D4D4D4")
+					.on("mouseover",function(){lineGraph1.attr("stroke","black");
+											recta1.attr("stroke","black");
+											rectb1.attr("stroke","black");})
+					.on("mouseout",function(){lineGraph1.attr("stroke","#D4D4D4");
+											recta1.attr("stroke","#D4D4D4");
+											rectb1.attr("stroke","#D4D4D4");});
+					
+	var lineData = data_second;
+	var l = lineData.length;
+					
+	var recta2 = svgContainer.append("rect")
+                    .attr("x", lineData[0].x-3)
+                    .attr("y", lineData[0].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","recta2")
+					.attr("fill","#D4D4D4");
+					
+	var rectb2 = svgContainer.append("rect")
+                    .attr("x", lineData[l-1].x-3)
+                    .attr("y", lineData[l-1].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","rectb2")
+					.attr("fill","#D4D4D4");
+					
+	var lineGraph2 = svgContainer.append("path")
+                    .attr("d", lineFunction(lineData))
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none")
+					.attr("id","path2")
+					.attr("stroke", "#D4D4D4")
+					.on("mouseover",function(){lineGraph2.attr("stroke","black");
+											recta2.attr("stroke","black");
+											rectb2.attr("stroke","black");})
+					.on("mouseout",function(){lineGraph2.attr("stroke","#D4D4D4");
+											recta2.attr("stroke","#D4D4D4");
+											rectb2.attr("stroke","#D4D4D4");});
+					
+	var lineData = data_third;
+	var l = lineData.length;
+					
+	var recta3 = svgContainer.append("rect")
+                    .attr("x", lineData[0].x-3)
+                    .attr("y", lineData[0].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","recta3")
+					.attr("fill","#D4D4D4");
+					
+	var rectb3 = svgContainer.append("rect")
+                    .attr("x", lineData[l-1].x-3)
+                    .attr("y", lineData[l-1].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","rectb3")
+					.attr("fill","#D4D4D4");
+					
+	var lineGraph3 = svgContainer.append("path")
+                    .attr("d", lineFunction(lineData))
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none")
+					.attr("id","path3")
+					.attr("stroke", "#D4D4D4")
+					.on("mouseover",function(){lineGraph3.attr("stroke","black");
+											recta3.attr("stroke","black");
+											rectb3.attr("stroke","black");})
+					.on("mouseout",function(){lineGraph3.attr("stroke","#D4D4D4");
+											recta3.attr("stroke","#D4D4D4");
+											rectb3.attr("stroke","#D4D4D4");});
+					
+	var lineData = data_fourth;
+	var l = lineData.length;
+					
+	var recta4 = svgContainer.append("rect")
+                    .attr("x", lineData[0].x-3)
+                    .attr("y", lineData[0].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","recta4")
+					.attr("fill","#D4D4D4");
+					
+	var rectb4 = svgContainer.append("rect")
+                    .attr("x", lineData[l-1].x-3)
+                    .attr("y", lineData[l-1].y-36)
+                    .attr("width", 6)
+                    .attr("height", 6)
+					.attr("id","rectb4")
+					.attr("fill","#D4D4D4");
+					
+	var lineGraph4 = svgContainer.append("path")
+                    .attr("d", lineFunction(lineData))
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none")
+					.attr("id","path4")
+					.attr("stroke", "#D4D4D4")
+					.on("mouseover",function(){lineGraph4.attr("stroke","black");
+											recta4.attr("stroke","black");
+											rectb4.attr("stroke","black");})
+					.on("mouseout",function(){lineGraph4.attr("stroke","#D4D4D4");
+											recta4.attr("stroke","#D4D4D4");
+											rectb4.attr("stroke","#D4D4D4");});
+}	
+
+function Clear(event)
+{
+	var recta = svgContainer.selectAll("rect")
+							.attr("id",["recta1","recta2","recta3","recta4"]);
+	recta.remove();
+	var rectb = svgContainer.selectAll("rect")
+							.attr("id",["rectb1","rectb2","rectb3","rectb4"]);
+	rectb.remove();
+	var lineGraph = svgContainer.selectAll("path")
+							.attr("id",["path1","path2","path3","path4"]);
+	lineGraph.remove();
+}
+
+/*function changeLoc(k,a,b)
+{
+	var d = document.getElementById(k);
+	setTimeout(function(){
+		d.style.left = a ;
+		d.style.top = b ;
+	},1000);
+}*/
+
+function Update(event)
+{
+	var d = document.getElementById("1");
+	var lineData = data_first;
+	var l = lineData.length;
+	var i=0;
+	for(var i=0;i<l;i++){
+	d.style.left = data_first[i].x + "px";
+	d.style.top = data_first[i].y + "px";}
+	data_first = [];
+	data_first.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+	d = document.getElementById("2");
+	var lineData = data_second;
+	var l = lineData.length;
+	for(var i=0;i<l;i++){
+	d.style.left = lineData[i].x + "px";
+	d.style.top = lineData[i].y + "px";}
+	data_second = [];
+	data_second.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+	d = document.getElementById("3");
+	var lineData = data_third;
+	var l = lineData.length;
+	for(var i=0;i<l;i++){
+	d.style.left = lineData[i].x + "px";
+	d.style.top = lineData[i].y + "px";}
+	data_third = [];
+	data_third.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+	d = document.getElementById("4");
+	var lineData = data_fourth;
+	var l = lineData.length;
+	for(var i=0;i<l;i++){
+	d.style.left = lineData[i].x + "px";
+	d.style.top = lineData[i].y + "px";}
+	data_fourth = [];
+	data_fourth.push({x:parseInt(d.style.left),y:parseInt(d.style.top)});
+	update = new Array(0,0,0,0,0);
+	var nl = m;
+	m=500;
+	for(var i=5;i<nl;i++)
+	{
+		var not = document.getElementById("notif" + i);
+		var newCell = document.getElementById("notifiDiv");
+		newCell.removeChild(not);
+	}
+}
+
+function clearNotifi(event)
+{
+	var nl = m;
+	m=5;
+	for(var i=5;i<nl;i++)
+	{
+		var not = document.getElementById("notif" + i);
+		var newCell = document.getElementById("notifiDiv");
+		//if (not.style.backgroundColor=="rgb(212, 212, 212)")
+		//{
+			newCell.removeChild(not);
+		//}
+		//else
+		//{
+		//	not.id="notif" + m++;
+		//}
+	}
+}
+
+</script>
+
+</body>
+</html>

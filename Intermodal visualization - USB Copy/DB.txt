@@ -1,0 +1,50 @@
+Your environment has been set up for using Node.js 0.10.7 (ia32) and npm
+
+C:\Users\Soumya_520105>d:
+
+D:\>cd mongodb
+
+D:\mongodb>cd bin
+
+D:\mongodb\bin>mongo
+MongoDB shell version: 2.4.3
+connecting to: test
+Server has startup warnings:
+Thu Jul 11 14:55:30.812 [initandlisten]
+Thu Jul 11 14:55:30.812 [initandlisten] ** NOTE: This is a 32 bit MongoD
+.
+Thu Jul 11 14:55:30.812 [initandlisten] **       32 bit builds are limit
+ss than 2GB of data (or less with --journal).
+Thu Jul 11 14:55:30.812 [initandlisten] **       Note that journaling de
+o off for 32 bit and is currently off.
+Thu Jul 11 14:55:30.812 [initandlisten] **       See http://dochub.mongo
+ore/32bit
+Thu Jul 11 14:55:30.812 [initandlisten]
+Thu Jul 11 14:55:30.875 [initandlisten]
+Thu Jul 11 14:55:30.875 [initandlisten] ** WARNING: mongod started witho
+lSet yet 1 documents are present in local.system.replset
+Thu Jul 11 14:55:30.875 [initandlisten] **          Restart with --replS
+s you are doing maintenance and no other clients are connected.
+Thu Jul 11 14:55:30.875 [initandlisten] **          The TTL collection m
+ill not start because of this.
+Thu Jul 11 14:55:30.875 [initandlisten] **          For more info see ht
+hub.mongodb.org/core/ttlcollections
+Thu Jul 11 14:55:30.875 [initandlisten]
+> use assetDb
+switched to db assetDb
+> db.asset.find()
+{ "_id" : 3, "left" : "492px", "status" : "unlock", "top" : "305px" }
+{ "_id" : 4, "left" : "172px", "status" : "unlock", "top" : "261px" }
+{ "_id" : 2, "left" : "686px", "status" : "unlock", "top" : "602px" }
+{ "_id" : 1, "left" : "182px", "status" : "unlock", "top" : "397px" }
+{ "_id" : 5, "left" : "300px", "top" : "332px", "status" : "unlock" }
+{ "_id" : 6, "left" : "450px", "top" : "150px", "status" : "unlock" }
+>
+
+insert queries:
+db.asset.insert({ "_id" : 3, "left" : "492px", "status" : "unlock", "top" : "305px" })
+db.asset.insert({ "_id" : 4, "left" : "172px", "status" : "unlock", "top" : "261px" })
+db.asset.insert({ "_id" : 2, "left" : "686px", "status" : "unlock", "top" : "602px" })
+db.asset.insert({ "_id" : 1, "left" : "182px", "status" : "unlock", "top" : "397px" })
+db.asset.insert({ "_id" : 5, "left" : "300px", "top" : "332px", "status" : "unlock" })
+db.asset.insert({ "_id" : 6, "left" : "450px", "top" : "150px", "status" : "unlock" })
